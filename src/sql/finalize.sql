@@ -593,6 +593,9 @@ $$;
 CREATE FUNCTION alter_vector_index("index" OID, "key" TEXT, "value" TEXT) RETURNS void
 STRICT LANGUAGE c AS 'MODULE_PATHNAME', '_vectors_alter_vector_index_wrapper';
 
+CREATE FUNCTION extract_pdf("input" BYTEA, "model" TEXT, "prompt" TEXT) RETURNS TEXT
+STRICT PARALLEL SAFE LANGUAGE c AS 'MODULE_PATHNAME', '_vectors_extract_pdf_wrapper';
+
 -- List of casts
 
 CREATE CAST (real[] AS vector)
