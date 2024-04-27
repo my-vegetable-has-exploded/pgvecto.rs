@@ -593,8 +593,37 @@ $$;
 CREATE FUNCTION alter_vector_index("index" OID, "key" TEXT, "value" TEXT) RETURNS void
 STRICT LANGUAGE c AS 'MODULE_PATHNAME', '_vectors_alter_vector_index_wrapper';
 
-CREATE FUNCTION extract_pdf("input" BYTEA, "model" TEXT, "prompt" TEXT) RETURNS TEXT
+CREATE FUNCTION extract_pdf_to_json("input" BYTEA, "model" TEXT, "prompts" TEXT[]) RETURNS TEXT
 STRICT PARALLEL SAFE LANGUAGE c AS 'MODULE_PATHNAME', '_vectors_extract_pdf_wrapper';
+
+CREATE FUNCTION extract_pdf("input" BYTEA, "model" TEXT, "prompts" TEXT[], OUT result RECORD) RETURNS RECORD AS $$
+DECLARE
+	json_result TEXT;
+	record_def TEXT := '';  -- the the record definition
+    record_var RECORD;      -- the record variable to return
+    query TEXT;             -- the json_to_record query 
+BEGIN
+	-- extract the json result from the pdf
+	json_result := extract_pdf_to_json(input, model, prompts);
+
+    -- build the record definition
+    SELECT INTO record_def
+        string_agg(format('%I text', key), ', ')
+    FROM unnest(prompts) AS key;
+
+    -- build the json_to_record query
+    query := format(
+        'SELECT * FROM json_to_record(%L) AS x(%s)',
+        json_result, record_def
+    );
+
+    -- excute query and store into record_var
+    EXECUTE query INTO record_var;
+
+    result := record_var;
+    RETURN;
+END;
+$$ LANGUAGE plpgsql STRICT PARALLEL SAFE;
 
 -- List of casts
 

@@ -23,7 +23,7 @@ fn _vectors_text2vec_openai(input: String, model: String) -> Vecf32Output {
 }
 
 #[pgrx::pg_extern(volatile, strict, parallel_safe)]
-fn _vectors_extract_pdf(input: &[u8], model: String, prompt: String) -> String {
+fn _vectors_extract_pdf(input: &[u8], model: String, prompts: Vec<Option<String>>) -> String {
     let text = match pdf_extract::extract_text_from_mem(input) {
         Ok(text) => text,
         Err(e) => error!(
@@ -35,12 +35,20 @@ fn _vectors_extract_pdf(input: &[u8], model: String, prompt: String) -> String {
     let resp = match openai_completion(
         vec![
             CompletionMessage {
+                role: "system".to_string(),
+                content:
+                    "You are a helpful assistant that extracts data and returns it in JSON format."
+                        .to_string(),
+            },
+            CompletionMessage {
                 role: "user".to_string(),
                 content: text,
             },
             CompletionMessage {
                 role: "user".to_string(),
-                content: prompt,
+                content: "Tell me about ".to_string()
+                    + &prompts.into_iter().flatten().collect::<Vec<_>>().join(", ")
+                    + ", returns it in JSON format.",
             },
         ],
         model,
