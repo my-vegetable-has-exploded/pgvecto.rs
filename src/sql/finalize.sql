@@ -677,13 +677,13 @@ CREATE AGGREGATE avg(svector) (
     PARALLEL = SAFE
 );
 
-CREATE AGGREGATE sum(svector) (
-    SFUNC = _vectors_svecf32_aggregate_avg_sum_sfunc,
-    STYPE = internal,
-    COMBINEFUNC = _vectors_svecf32_aggregate_avg_sum_combinefunc,
-    FINALFUNC = _vectors_svecf32_aggregate_sum_finalfunc,
-    PARALLEL = SAFE
-);
+-- CREATE AGGREGATE sum(svector) (
+--     SFUNC = _vectors_svecf32_aggregate_avg_sum_sfunc,
+--     STYPE = internal,
+--     COMBINEFUNC = _vectors_svecf32_aggregate_avg_sum_combinefunc,
+--     FINALFUNC = _vectors_svecf32_aggregate_sum_finalfunc,
+--     PARALLEL = SAFE
+-- );
 
 -- List of casts
 
